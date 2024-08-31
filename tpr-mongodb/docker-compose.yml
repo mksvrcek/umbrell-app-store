@@ -1,14 +1,14 @@
+version: '3'
+
 services:
     mongo:
         image: mongo
-        external: true
         environment:
             - MONGO_INITDB_ROOT_USERNAME: root
             - MONGO_INITDB_ROOT_PASSWORD: root
             - MONGO_INITDB_DATABASE: root
     mongo-express:
         image: mongo-express
-        external: true
         environment:
             - ME_CONFIG_MONGODB_SERVER: mongo
             - ME_CONFIG_MONGODB_PORT: 27017
@@ -22,3 +22,8 @@ services:
             - mongo
         ports:
           - "8888:8081"
+
+networks:
+  default:
+    name: ddev_default
+    external: true
