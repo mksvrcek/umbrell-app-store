@@ -1,29 +1,28 @@
 manifestVersion: 1
-id: sparkles-excalidraw
-name: Excalidraw
-tagline: Virtual whiteboard for sketching hand-drawn like diagrams
-icon: https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/favicon.ico
+id: sparkles-archivebox
+name: ArchiveBox
+tagline: Open-source self-hosted web archiving
+icon: https://svgur.com/i/Xkz.svg
 category: Productivity
-version: "1.0.0"
-port: 9932
+version: "0.6.2"
+port: 8766
 description: >-
-  Excalidraw is a virtual collaborative whiteboard tool that 
-  lets you easily sketch diagrams that feel hand-drawn, but 
-  look professional.
+  ArchiveBox is a powerful, self-hosted web archiving system 
+  that saves websites to local storage, ensuring you can 
+  access them even if they go offline.
 
-developer: Excalidraw Team
-website: https://excalidraw.com/
-submitter: Excalidraw Team
-submission: https://github.com/excalidraw/excalidraw
-repo: https://github.com/excalidraw/excalidraw
-support: https://github.com/excalidraw/excalidraw/issues
+developer: ArchiveBox Team
+website: https://archivebox.io/
+submitter: ArchiveBox Team
+submission: https://github.com/ArchiveBox/ArchiveBox
+repo: https://github.com/ArchiveBox/ArchiveBox
+support: https://github.com/ArchiveBox/ArchiveBox/issues
 gallery:
-  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/og-image-2.png
-  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/og-image.png
-  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/welcome-screen-overview.png
+  - https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/master/docs/img/demo.gif
+  - https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/master/docs/img/screenshot.png
 releaseNotes: >-
-  Initial release of Excalidraw with basic collaborative whiteboard 
-  features.
+  ArchiveBox 0.6.2 includes various new features, 
+  performance improvements, and bug fixes.
 dependencies: []
 path: ""
 defaultUsername: ""
