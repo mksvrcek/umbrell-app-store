@@ -1,0 +1,29 @@
+manifestVersion: 1
+id: tpr-slash
+name: Slash
+tagline: Open-source self-hosted bookmark manager
+icon: https://lh3.googleusercontent.com/kRzDkJdvUyAlVvPcDQCvTIa9wRSWHtKYyuvy5mEKsb0U7cfopp12bjqgH8GUVqx8q5LeI_hkfvy7r17PwebOnZSTQA=s60
+category: Productivity
+version: "0.6.2"
+port: 5231
+description: >-
+  An open source, self-hosted platform for sharing and managing your most frequently used links.
+
+Slash is an open source, self-hosted platform for sharing and managing your most frequently used links. Easily create customizable, human-readable shortcuts to streamline your link management.
+
+This project is under active development. If you have some issues or suggestions, please feel free to tell us. https://github.com/yourselfhosted/slash/issues
+
+developer: YourSelfHosted
+website: https://www.yourselfhosted.com/
+submitter: YourSelfHosted
+submission: 
+repo: https://github.com/yourselfhosted/slash
+support: https://github.com/yourselfhosted/slash/issues
+gallery:
+  - https://github.com/yourselfhosted/slash/raw/main/docs/assets/demo.png
+releaseNotes: >-
+  n/a
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
