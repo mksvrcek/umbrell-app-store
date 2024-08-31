@@ -5,7 +5,7 @@ tagline: Open-source self-hosted web archiving
 icon: https://w7.pngwing.com/pngs/173/36/png-transparent-postgresql-logo-computer-software-database-open-source-s-text-head-snout.png
 category: Productivity
 version: "0.6.2"
-port: 8767
+port: 8081
 description: >-
   ArchiveBox is a powerful, self-hosted web archiving system 
   that saves websites to local storage, ensuring you can 
