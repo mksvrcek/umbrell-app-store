@@ -3,7 +3,7 @@ version: '3.1'
 
 services:
 
-app_proxy:
+  app_proxy:
     environment:
       # The format here is: <app-id>_<docker-service-name>_1
       APP_HOST: tpr-mongoexpress_1
