@@ -2,7 +2,7 @@ manifestVersion: 1
 id: tpr-postgres
 name: PostgresSQL
 tagline: Open-source self-hosted web archiving
-icon: https://svgur.com/i/Xkz.svg
+icon: https://w7.pngwing.com/pngs/173/36/png-transparent-postgresql-logo-computer-software-database-open-source-s-text-head-snout.png
 category: Productivity
 version: "0.6.2"
 port: 8766
