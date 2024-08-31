@@ -1,11 +1,14 @@
 version: "3.7"
 
 services:
-  excalidraw:
-    image: excalidraw/excalidraw
+  archivebox:
+    image: archivebox/archivebox
     restart: on-failure
     stop_grace_period: 1m
     volumes:
-      - ${APP_DATA_DIR}/excalidraw:/app/data
+      - ${APP_DATA_DIR}/archivebox:/data
     ports:
-      - "9932:80"
+      - "8766:8000"
+    environment:
+      ALLOWED_HOSTS: "*"
+      USE_COLOR: "True"
