@@ -2,13 +2,6 @@
 version: '3.1'
 
 services:
-
-  app_proxy:
-    environment:
-      # The format here is: <app-id>_<docker-service-name>_1
-      APP_HOST: tpr-mongoexpress_1
-      APP_PORT: 8570
-
   mongo:
     image: mongo
     restart: always
@@ -20,7 +13,7 @@ services:
     image: mongo-express
     restart: always
     ports:
-      - 8569:8081
+      - 8081:8081
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
