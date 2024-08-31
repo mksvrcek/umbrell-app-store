@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
  hello-world:
-      image: hello-world
+      image: library/hello-world
       restart: on-failure
       stop_grace_period: 1m
       volumes:
