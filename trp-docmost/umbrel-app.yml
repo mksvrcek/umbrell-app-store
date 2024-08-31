@@ -1,0 +1,26 @@
+manifestVersion: 1
+id: tpr-docmost
+name: Docmost
+tagline: Open-source collaborative wiki
+icon: https://i.pinimg.com/736x/4c/a7/47/4ca74785f8b45e261dc6dbcc8012f9d0.jpg
+category: Productivity
+version: "0.6.2"
+port: 3000
+description: >-
+  Open-source collaborative wiki and documentation software
+developer: Docmost
+website: https://www.docmost.com/
+submitter: Docmost
+submission: 
+repo: 
+support: 
+gallery:
+  - https://docmost.com/screenshots/home.png
+  - https://docmost.com/screenshots/editor.png
+  - https://docmost.com/screenshots/editor2.png
+releaseNotes: >-
+  n/a
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
