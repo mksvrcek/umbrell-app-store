@@ -1,26 +1,29 @@
 manifestVersion: 1
-id: sparkles-postgres-sql
-name: PostgreSQL
-tagline: The PostgreSQL object-relational database system provides reliability and data integrity.
-icon: https://hub.docker.com/api/media/repos_logo/v1/library%2Fpostgres
-category: Development
+id: sparkles-excalidraw
+name: Excalidraw
+tagline: Virtual whiteboard for sketching hand-drawn like diagrams
+icon: https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/favicon.ico
+category: Productivity
 version: "1.0.0"
 port: 9932
 description: >-
-  
+  Excalidraw is a virtual collaborative whiteboard tool that 
+  lets you easily sketch diagrams that feel hand-drawn, but 
+  look professional.
 
-developer: Umbrel
-website: https://umbrel.com
-submitter: Umbrel
-submission: https://github.com/getumbrel/umbrel-hello-world-app
-repo: https://github.com/getumbrel/umbrel-hello-world-app
-support: https://github.com/getumbrel/umbrel-hello-world-app/issues
+developer: Excalidraw Team
+website: https://excalidraw.com/
+submitter: Excalidraw Team
+submission: https://github.com/excalidraw/excalidraw
+repo: https://github.com/excalidraw/excalidraw
+support: https://github.com/excalidraw/excalidraw/issues
 gallery:
-  - https://i.imgur.com/yyVG0Jb.jpeg
-  - https://i.imgur.com/yyVG0Jb.jpeg
-  - https://i.imgur.com/yyVG0Jb.jpeg
+  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/og-image-2.png
+  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/og-image.png
+  - https://github.com/excalidraw/excalidraw/blob/master/dev-docs/static/img/welcome-screen-overview.png
 releaseNotes: >-
-  Add what's new in the latest version of your app here.
+  Initial release of Excalidraw with basic collaborative whiteboard 
+  features.
 dependencies: []
 path: ""
 defaultUsername: ""
