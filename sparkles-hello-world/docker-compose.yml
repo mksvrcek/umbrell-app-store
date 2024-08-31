@@ -1,12 +1,11 @@
 version: "3.7"
 
 services:
- hello-world:
-      image: library/hello-world
-      restart: on-failure
-      stop_grace_period: 1m
-      volumes:
-        - ${APP_DATA_DIR}/hello-world:/app/data
-      ports:
-        - "1000:1000"
-
+  excalidraw:
+    image: excalidraw/excalidraw
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/excalidraw:/app/data
+    ports:
+      - "9932:80"
