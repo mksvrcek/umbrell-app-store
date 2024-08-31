@@ -20,7 +20,7 @@ gallery:
   - https://docmost.com/screenshots/editor2.png
 releaseNotes: >-
   n/a
-dependencies: [db, redis]
+dependencies: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
