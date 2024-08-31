@@ -1,16 +1,13 @@
 manifestVersion: 1
-id: sparkles-hello-world
-name: Hello World
-tagline: Replace this tagline with your app's tagline
-icon: https://svgur.com/i/mvA.svg
+id: postgres-sql
+name: PostgreSQL
+tagline: The PostgreSQL object-relational database system provides reliability and data integrity.
+icon: https://hub.docker.com/api/media/repos_logo/v1/library%2Fpostgres
 category: Development
 version: "1.0.0"
 port: 4000
 description: >-
-  Add your app's description here.
-
-
-  You can also add newlines!
+  
 
 developer: Umbrel
 website: https://umbrel.com
