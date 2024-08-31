@@ -1,6 +1,6 @@
 manifestVersion: 1
-id: tpr-postgres
-name: PostgresSQL
+id: tpr-mongodb
+name: MongoDB
 tagline: Open-source self-hosted web archiving
 icon: https://w7.pngwing.com/pngs/173/36/png-transparent-postgresql-logo-computer-software-database-open-source-s-text-head-snout.png
 category: Productivity
