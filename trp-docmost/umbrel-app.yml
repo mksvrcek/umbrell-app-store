@@ -11,9 +11,9 @@ description: >-
 developer: Docmost
 website: https://www.docmost.com/
 submitter: Docmost
-submission: 
-repo: 
-support: 
+submission:
+repo: https://docmost.com
+support: https://docmost.com
 gallery:
   - https://docmost.com/screenshots/home.png
   - https://docmost.com/screenshots/editor.png
