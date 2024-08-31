@@ -8,6 +8,3 @@ services:
     volumes:
       - slash:/var/opt/slash
     restart: unless-stopped
-
-volumes:
-  slash:
