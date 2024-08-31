@@ -4,26 +4,21 @@ services:
     mongo:
         image: mongo
         environment:
-            - MONGO_INITDB_ROOT_USERNAME: root
-            - MONGO_INITDB_ROOT_PASSWORD: root
-            - MONGO_INITDB_DATABASE: root
+            - MONGO_INITDB_ROOT_USERNAME=root
+            - MONGO_INITDB_ROOT_PASSWORD=root
+            - MONGO_INITDB_DATABASE=root
     mongo-express:
         image: mongo-express
         environment:
-            - ME_CONFIG_MONGODB_SERVER: mongo
-            - ME_CONFIG_MONGODB_PORT: 27017
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN: false
-            - ME_CONFIG_MONGODB_AUTH_DATABASE: admin
-            - ME_CONFIG_MONGODB_AUTH_USERNAME: root
-            - ME_CONFIG_MONGODB_AUTH_PASSWORD: root
-            - ME_CONFIG_BASICAUTH_USERNAME: root
-            - ME_CONFIG_BASICAUTH_PASSWORD: root
+            - ME_CONFIG_MONGODB_SERVER=mongo
+            - ME_CONFIG_MONGODB_PORT=27017
+            - ME_CONFIG_MONGODB_ENABLE_ADMIN=false
+            - ME_CONFIG_MONGODB_AUTH_DATABASE=root
+            - ME_CONFIG_MONGODB_AUTH_USERNAME=root
+            - ME_CONFIG_MONGODB_AUTH_PASSWORD=root
+            - ME_CONFIG_BASICAUTH_USERNAME=root
+            - ME_CONFIG_BASICAUTH_PASSWORD=root
         depends_on:
             - mongo
         ports:
           - "8888:8081"
-
-networks:
-  default:
-    name: ddev_default
-    external: true
