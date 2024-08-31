@@ -1,6 +1,12 @@
 version: '3.8'
 
 services:
+app_proxy:
+    environment:
+      # The format here is: <app-id>_<docker-service-name>_1
+      APP_HOST: tpr-mongoexpress_1
+      APP_PORT: 8081
+
   mongo:
     image: mongo:4
     restart: always
