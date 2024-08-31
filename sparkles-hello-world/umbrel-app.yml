@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: postgres-sql
+id: sparkles-postgres-sql
 name: PostgreSQL
 tagline: The PostgreSQL object-relational database system provides reliability and data integrity.
 icon: https://hub.docker.com/api/media/repos_logo/v1/library%2Fpostgres
