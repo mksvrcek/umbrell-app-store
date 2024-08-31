@@ -7,7 +7,7 @@ services:
     environment:
       # The format here is: <app-id>_<docker-service-name>_1
       APP_HOST: tpr-mongoexpress_1
-      APP_PORT: 8569
+      APP_PORT: 8570
 
   mongo:
     image: mongo
