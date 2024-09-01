@@ -9,8 +9,8 @@ services:
         - PGID=100
         - UMASK=0022
         - TZ=America/New_York
-        - COUCHDB_USER=obsidian_user # optionally change me
-        - COUCHDB_PASSWORD=password # definitly change me
+        - COUCHDB_USER=admin
+        - COUCHDB_PASSWORD=password
       volumes:
         - /mnt/user/appdata/couchdb-obsidian-livesync/data:/opt/couchdb/data
         - /mnt/user/appdata/couchdb-obsidian-livesync/etc/local.d:/opt/couchdb/etc/local.d
