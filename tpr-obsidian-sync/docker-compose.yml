@@ -7,7 +7,7 @@ services:
         APP_PORT: 5984
 
   couchdb-obsidian-livesync:
-      container_name: obsidian-livesync #shortened name
+      container_name: obsidian-livesync
       image: couchdb:3.3.3
       environment:
         - PUID=99
