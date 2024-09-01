@@ -1,15 +1,13 @@
 manifestVersion: 1
-id: tpr-mongodb
+id: tpr-mongo-express
 name: MongoDB
 tagline: Open-source self-hosted web archiving
 icon: https://w7.pngwing.com/pngs/173/36/png-transparent-postgresql-logo-computer-software-database-open-source-s-text-head-snout.png
 category: Productivity
 version: "0.6.2"
-port: 8082
+port: 8081
 description: >-
   ArchiveBox is a powerful, self-hosted web archiving system 
-  that saves websites to local storage, ensuring you can 
-  access them even if they go offline.
 developer: ArchiveBox Team
 website: https://archivebox.io/
 submitter: ArchiveBox Team
@@ -20,8 +18,7 @@ gallery:
   - https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/master/docs/img/demo.gif
   - https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/master/docs/img/screenshot.png
 releaseNotes: >-
-  ArchiveBox 0.6.2 includes various new features, 
-  performance improvements, and bug fixes.
+  na
 dependencies: []
 path: ""
 defaultUsername: ""
