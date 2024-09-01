@@ -5,7 +5,7 @@ tagline: Obsidian Sync works to keep your notes synchronized.
 icon: https://forum.obsidian.md/uploads/default/original/2X/b/b0c1ac65c3b9c3c94389bbfa5466dae781e06d85.png
 category: Productivity
 version: "1.0.0"
-port: 3000
+port: 5984
 description: >-
   Obsidian Sync works in the background to keep your notes synchronized effortlessly and privately.
 developer: Obsidian
