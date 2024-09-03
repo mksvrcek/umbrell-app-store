@@ -4,7 +4,7 @@ services:
   app_proxy:
       environment:
         APP_HOST: obsidian_livesync_1
-        APP_PORT: 3000
+        APP_PORT: 5984
 
   couchdb-obsidian-livesync:
       container_name: obsidian-livesync
@@ -22,7 +22,7 @@ services:
 #      ports:
 #        - "5984:5984"
       restart: unless-stopped
-      labels:
-        - net.unraid.docker.webui=http://[IP]:[PORT:5984]/_utils # for some reason this does not work properly
-        - net.unraid.docker.icon=https://couchdb.apache.org/image/couch@2x.png
-        - net.unraid.docker.shell=bash
+#      labels:
+#        - net.unraid.docker.webui=http://[IP]:[PORT:5984]/_utils # for some reason this does not work properly
+#        - net.unraid.docker.icon=https://couchdb.apache.org/image/couch@2x.png
+#        - net.unraid.docker.shell=bash
