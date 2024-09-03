@@ -16,7 +16,7 @@ services:
         - TZ=America/New_York
         - COUCHDB_USER=admin
         - COUCHDB_PASSWORD=password
-        - PORT: 5984
+        - PORT=5984
       volumes:
         - /mnt/user/appdata/couchdb-obsidian-livesync/data:/opt/couchdb/data
         - /mnt/user/appdata/couchdb-obsidian-livesync/etc/local.d:/opt/couchdb/etc/local.d
