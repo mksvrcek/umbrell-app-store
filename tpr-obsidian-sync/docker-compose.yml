@@ -4,7 +4,7 @@ services:
   app_proxy:
       environment:
         APP_HOST: tpr-obsidian-sync_couchdb_1
-        APP_PORT: 5985
+        APP_PORT: 5984
 
   couchdb:
       container_name: obsidian-livesync
@@ -20,7 +20,7 @@ services:
         - /mnt/user/appdata/couchdb-obsidian-livesync/data:/opt/couchdb/data
         - /mnt/user/appdata/couchdb-obsidian-livesync/etc/local.d:/opt/couchdb/etc/local.d
       ports:
-        - "5984:5984"
+        - "5985:5984"
       restart: unless-stopped
 #      labels:
 #        - net.unraid.docker.webui=http://[IP]:[PORT:5984]/_utils # for some reason this does not work properly
