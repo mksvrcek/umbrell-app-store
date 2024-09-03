@@ -1,6 +1,11 @@
 version: "3"
 
 services:
+  app_proxy:
+      environment:
+        APP_HOST: tpr-placeholder_docmost_1
+        APP_PORT: 3000
+        
   docmost:
     image: docmost/docmost:latest
     depends_on:
