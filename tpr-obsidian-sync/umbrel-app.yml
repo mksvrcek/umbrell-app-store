@@ -7,13 +7,13 @@ category: Productivity
 version: "1.0.0"
 port: 5984
 description: >-
-  Obsidian Sync works in the background to keep your notes synchronized effortlessly and privately.
+  Obsidian Sync works in the background to keep your notes synchronized effortlessly and privately. \n\n
   
-  Instructions for Obsidian LiveSync selfhosting.
-  https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/
+  Instructions for Obsidian LiveSync selfhosting. \n
+  https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/ \n\n
 
-  App Host: obsidian_livesync_1
-  App Port: 5984
+  App Host: tpr-obsidian-sync_couchdb_1 \n
+  App Port: 5984 
 developer: Apache CouchDB
 website: https://couchdb.apache.org/
 submitter: Apache CouchDB
