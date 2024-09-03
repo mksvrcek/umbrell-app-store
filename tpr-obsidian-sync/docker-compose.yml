@@ -3,10 +3,10 @@ version: "3"
 services:
   app_proxy:
       environment:
-        APP_HOST: obsidian_livesync_1
-        APP_PORT: 3000
+        APP_HOST: tpr-obsidian-sync_couchdb_1
+        APP_PORT: 5984
 
-  couchdb-obsidian-livesync:
+  couchdb:
       container_name: obsidian-livesync
       image: couchdb:3.3.3
       environment:
@@ -16,7 +16,6 @@ services:
         - TZ=America/New_York
         - COUCHDB_USER=admin
         - COUCHDB_PASSWORD=password
-        - PORT=5984
       volumes:
         - /mnt/user/appdata/couchdb-obsidian-livesync/data:/opt/couchdb/data
         - /mnt/user/appdata/couchdb-obsidian-livesync/etc/local.d:/opt/couchdb/etc/local.d
