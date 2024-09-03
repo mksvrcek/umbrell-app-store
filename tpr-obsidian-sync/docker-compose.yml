@@ -1,10 +1,10 @@
 version: "3"
 
 services:
-#  app_proxy:
-#      environment:
-#        APP_HOST: tpr-obsidian-sync_couchdb_1
-#        APP_PORT: 5984
+  app_proxy:
+      environment:
+        APP_HOST: tpr-obsidian-sync_couchdb_1
+        APP_PORT: 5985
 
   couchdb:
       container_name: obsidian-livesync
