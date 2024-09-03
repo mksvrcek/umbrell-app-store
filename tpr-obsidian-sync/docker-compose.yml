@@ -19,8 +19,8 @@ services:
       volumes:
         - /mnt/user/appdata/couchdb-obsidian-livesync/data:/opt/couchdb/data
         - /mnt/user/appdata/couchdb-obsidian-livesync/etc/local.d:/opt/couchdb/etc/local.d
-      ports:
-        - "5985:5984"
+#      ports:
+#        - "5985:5984"
       restart: unless-stopped
 #      labels:
 #        - net.unraid.docker.webui=http://[IP]:[PORT:5984]/_utils # for some reason this does not work properly
