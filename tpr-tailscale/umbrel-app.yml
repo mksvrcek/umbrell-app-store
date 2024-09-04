@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: tailscale
+id: tpr-tailscale
 category: networking
 name: Tailscale
 version: "v1.72.1"
