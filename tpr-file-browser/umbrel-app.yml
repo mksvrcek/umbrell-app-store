@@ -2,6 +2,7 @@ manifestVersion: 1
 id: tpr-file-browser
 category: files
 name: File Browser
+icon: https://aroundsketch.github.io/Apple-App-Icons/app-icons/files/
 version: "2.31.2"
 tagline: Browse and manage the files you download on your Umbrel
 description: >-
