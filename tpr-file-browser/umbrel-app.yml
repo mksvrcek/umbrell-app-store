@@ -3,7 +3,7 @@ id: tpr-file-browser
 category: files
 name: File Browser
 icon: https://aroundsketch.github.io/Apple-App-Icons/App-Icon/Apple/Files/@SVG.svg
-version: "2.31.2"
+version: "2.31.3"
 tagline: Browse and manage the files you download on your Umbrel
 description: >-
   File Browser lets you upload, delete, preview, rename and edit your folders and files.
