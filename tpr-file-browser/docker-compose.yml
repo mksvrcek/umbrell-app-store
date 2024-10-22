@@ -8,6 +8,7 @@ services:
 
   server:
     image: filebrowser/filebrowser:v2.31.2@sha256:a4da9ca8364b0a1fc5dd36f7add92582bf673c0ae0bda8dd9bd13062c41d1715
+    privileged: true
     user: "1000:1000"
     restart: on-failure
     volumes:
