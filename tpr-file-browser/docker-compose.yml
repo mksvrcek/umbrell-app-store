@@ -19,5 +19,3 @@ services:
       - FB_DATABASE=/database/filebrowser.db
       - FB_ROOT=/data
       - FB_NOAUTH=true
-    command: >
-      filebrowser config set --branding.name "Files" --branding.files "${APP_DATA_DIR}/data/custom" --branding.disableExternal
