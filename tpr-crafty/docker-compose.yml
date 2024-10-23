@@ -14,8 +14,8 @@ services:
         - "19132:19132/udp" # BEDROCK
         - "25500-25600:25500-25600" # MC SERV PORT RANGE
     volumes:
-        - /Container/Minecraft/backups:/crafty/backups
-        - /Container/Minecraft/logs:/crafty/logs
-        - /Container/Minecraft/servers:/crafty/servers
-        - /Container/Minecraft/app/config:/crafty/app/config
-        - /Container/Minecraft/import:/crafty/import
+        - ${APP_DATA_DIR}/data/tpr-crafty/backups:/crafty/backups
+        - ${APP_DATA_DIR}/data/tpr-crafty/logs:/crafty/logs
+        - ${APP_DATA_DIR}/data/tpr-crafty/servers:/crafty/servers
+        - ${APP_DATA_DIR}/data/tpr-crafty/app/config:/crafty/app/config
+        - ${APP_DATA_DIR}/data/tpr-crafty/import:/crafty/import
