@@ -1,21 +1,21 @@
 manifestVersion: 1
 id: tpr-postgres
 name: Postgres
-tagline: idk database or something
+tagline: Postgres database with Adminer
 icon: https://cdn.icon-icons.com/icons2/1494/PNG/512/database_102857.png
 category: Productivity
-version: "0.6.3"
+version: "0.6.4"
 port: 5432
 description: >-
   POSTGRES
-developer: c
-website: c
+developer: https://hub.docker.com/_/postgres
+website: https://hub.docker.com/_/postgres
 submitter: c
-submission: https://github.com/ArchiveBox/ArchiveBox
-repo: https://github.com/ArchiveBox/ArchiveBox
-support: https://github.com/ArchiveBox/ArchiveBox/issues
+submission: https://hub.docker.com/_/postgres
+repo: https://hub.docker.com/_/postgres
+support: https://hub.docker.com/_/postgres/issues
 gallery:
-  - https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/master/docs/img/demo.gif
+  - https://www.adminer.org/static/screenshots/db.png
 releaseNotes: >-
   na
 dependencies: []
