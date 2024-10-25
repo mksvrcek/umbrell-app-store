@@ -4,8 +4,8 @@ name: Postgres
 tagline: Postgres database with Adminer
 icon: https://cdn.icon-icons.com/icons2/1494/PNG/512/database_102857.png
 category: Productivity
-version: "0.6.4"
-port: 5432
+version: "0.6.5"
+port: 8080
 description: >-
   POSTGRES
 developer: https://hub.docker.com/_/postgres
