@@ -2,9 +2,9 @@ manifestVersion: 1
 id: tpr-postgres
 name: Postgres
 tagline: idk database or something
-icon: https://w7.pngwing.com/pngs/173/36/png-transparent-postgresql-logo-computer-software-database-open-source-s-text-head-snout.png
+icon: https://cdn.icon-icons.com/icons2/1494/PNG/512/database_102857.png
 category: Productivity
-version: "0.6.2"
+version: "0.6.3"
 port: 5432
 description: >-
   POSTGRES
