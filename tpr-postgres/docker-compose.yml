@@ -15,11 +15,12 @@ services:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
     environment:
       POSTGRES_PASSWORD: $APP_PASSWORD
+    ports:
+      - 5432:1769
 
   adminer:
     image: adminer
     restart: always
     ports:
-      - 5432:5434
       - 8080:8080
 
