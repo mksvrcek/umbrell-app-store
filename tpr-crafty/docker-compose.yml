@@ -14,7 +14,7 @@ services:
         - TZ=Etc/UTC
     ports:
         - "8500:8000" # HTTP
-        - "8543:8443" # HTTPS
+        - "5984:8443" # HTTPS
         - "8523:8123" # DYNMAP
         - "19132:19132/udp" # BEDROCK
         - "25500-25600:25500-25600" # MC SERV PORT RANGE
