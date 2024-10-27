@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  app_proxy:
+      environment:
+        APP_HOST: tpr-crafty_crafty_1
+        APP_PORT: 6969
+
   crafty:
     container_name: crafty
     image: registry.gitlab.com/crafty-controller/crafty-4:latest
@@ -9,7 +14,7 @@ services:
         - TZ=Etc/UTC
     ports:
         - "8500:8000" # HTTP
-        - "5984:8443" # HTTPS
+        - "6969:8443" # HTTPS
         - "8523:8123" # DYNMAP
         - "19132:19132/udp" # BEDROCK
         - "25500-25600:25500-25600" # MC SERV PORT RANGE
