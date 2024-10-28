@@ -1,25 +1,27 @@
 manifestVersion: 1
 id: tpr-docmost
+category: Files & Productivity
 name: Docmost
-tagline: Placeholder tagline
-icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJEFvgLeuL4UNrmCXJl5q6S535wNth0WF5dQ&s
+tagline: Open-source collaborative wiki
+icon: https://avatars.githubusercontent.com/u/150462874?v=4
 category: Productivity
 version: "0.6.2"
 port: 3000
 description: >-
-  Placeholder description
-developer: Placeholder
-website: https://www.google.com/
-submitter: Placeholder
-submission: https://www.google.com/
-repo: https://www.google.com/
-support: https://www.google.com/
+  Open-source collaborative wiki and documentation software
+  
+  Create, collaborate, and share knowledge seamlessly with Docmost. Ideal for managing your wiki, knowledge-base, documentation and a lot more.
+developer: Docmost
+website: https://www.docmost.com/
+submitter: mksvrcek
+repo: https://github.com/docmost/docmost
+support: https://github.com/docmost/docmost/issues
 gallery:
   - https://docmost.com/screenshots/home.png
   - https://docmost.com/screenshots/editor.png
   - https://docmost.com/screenshots/editor2.png
 releaseNotes: >-
-  Placeholder release notes
+  n/a
 dependencies: []
 path: ""
 defaultUsername: ""
