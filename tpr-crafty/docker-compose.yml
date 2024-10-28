@@ -1,22 +1,22 @@
 version: '3'
 
 services:
-  app_proxy:
-    environment:
-      APP_HOST: tpr-crafty_crafty_1
-      APP_PORT: 8443
+  # app_proxy:
+  #   environment:
+  #     APP_HOST: tpr-crafty_crafty_1
+  #     APP_PORT: 8443
+      
   crafty:
-    container_name: crafty
-    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: crafty-container
+    image: registry.gitlab.com/crafty-controller/crafty-4:4.4.4
     restart: always
     environment:
-        - TZ=Etc/UTC
+      - TZ=Etc/UTC
     ports:
-        - "8500:8000" # HTTP
-        #- "8443:8443" # HTTPS
-        - "8523:8123" # DYNMAP
-        - "19132:19132/udp" # BEDROCK
-        - "25500-25600:25500-25600" # MC SERV PORT RANGE
+      - "8111:8443" # HTTPS
+      - "8112:8123" # DYNMAP
+      - "19132:19132/udp" # BEDROCK
+      - "25500-25600:25500-25600" # MC SERVER PORT RANGE
     volumes:
         - ${APP_DATA_DIR}/backups:/crafty/backups
         - ${APP_DATA_DIR}/logs:/crafty/logs
