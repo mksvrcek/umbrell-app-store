@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_PASSWORD: $APP_PASSWORD
     ports:
-      - 5432:1769
+      - 1769:5432
 
   adminer:
     image: adminer
