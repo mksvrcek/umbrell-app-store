@@ -3,7 +3,7 @@ version: '3'
 services:
   app_proxy:
     environment:
-      APP_HOST: snapdrop_server_1
+      APP_HOST: tpr-crafty_crafty_1
       APP_PORT: 8443
   crafty:
     container_name: crafty
