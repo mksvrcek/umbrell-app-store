@@ -4,7 +4,6 @@ category: Developer Tools
 name: Postgres
 tagline: Postgres database with Adminer
 icon: https://media.istockphoto.com/id/1048083774/vector/server.jpg?s=612x612&w=0&k=20&c=oHvAImqJnLgerTgGLvE9KpS-Zd3L4Tuq7-kmmPvRvVY=
-category: Productivity
 version: "0.6.6"
 port: 8080
 description: >-

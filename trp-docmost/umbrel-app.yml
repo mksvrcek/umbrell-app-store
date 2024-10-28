@@ -4,7 +4,6 @@ category: Files & Productivity
 name: Docmost
 tagline: Open-source collaborative wiki
 icon: https://avatars.githubusercontent.com/u/150462874?v=4
-category: Productivity
 version: "0.6.2"
 port: 3000
 description: >-
