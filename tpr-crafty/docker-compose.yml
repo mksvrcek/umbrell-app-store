@@ -7,7 +7,6 @@ services:
   #     APP_PORT: 8443
       
   crafty:
-    container_name: crafty-container
     image: registry.gitlab.com/crafty-controller/crafty-4:4.4.4
     restart: always
     environment:
