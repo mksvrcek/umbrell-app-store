@@ -1,0 +1,21 @@
+manifestVersion: 1
+id: tpr-custom
+category: Utilities
+name: Custom App Test
+tagline: Placeholder
+icon: 
+version: "0.0.1"
+port: 8889
+description: >-
+  n/a
+developer: 
+website: 
+submitter: 
+submission: 
+repo: 
+support: 
+gallery:
+releaseNotes: >-
+  n/a
+dependencies: []
+path: ""
