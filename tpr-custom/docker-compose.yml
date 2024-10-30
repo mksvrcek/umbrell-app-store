@@ -1,12 +1,10 @@
 services:
   backup-app:
     image: mksvrcek/hello-world:latest
-    container_name: backup-app-container
+    privileged: true
     ports:
-      - "8888:8888"  # Maps host port 8888 to container port 8888
+      - '8888:8888'
     volumes:
-      - ${APP_DATA_DIR}/appdata:${UMBREL_ROOT}/app-data   
-      - ${APP_DATA_DIR}/config:/app/config
+      - ${UMBREL_ROOT}/app-data:/app/appdata:rw
       - ${APP_DATA_DIR}/backup:/app/backup
-      - ${APP_DATA_DIR}/scripts:/app/scripts
-    restart: always 
+    restart: always
