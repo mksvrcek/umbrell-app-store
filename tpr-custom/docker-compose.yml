@@ -1,10 +1,12 @@
 services:
-  app:
+  backup-app:
     image: mksvrcek/hello-world:latest
-    restart: always
-    shm_size: 128mb    
-    volumes:
-      - ${APP_DATA_DIR}/data:/app
+    container_name: backup-app-container
     ports:
-      - 8889:8888
-
+      - "8888:8888"  # Maps host port 8888 to container port 8888
+    volumes:
+      - ${APP_DATA_DIR}/appdata:${UMBREL_ROOT}/app-data   
+      - ${APP_DATA_DIR}/config:/app/config
+      - ${APP_DATA_DIR}/backup:/app/backup
+      - ${APP_DATA_DIR}/scripts:/app/scripts
+    restart: always 
