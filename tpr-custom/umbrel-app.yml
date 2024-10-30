@@ -4,7 +4,7 @@ category: Utilities
 name: Custom App Test
 tagline: Placeholder
 icon: 
-version: "0.0.1"
+version: "0.0.2"
 port: 8888
 description: >-
   n/a
@@ -21,7 +21,7 @@ dependencies: []
 path: ""
 widgets:
   - id: "lastappbackup"
-    type: "text-with-progress"
+    type: "text-with-buttons"
     refresh: "1m"
     endpoint: "backup-app:8888/widgets/lastappbackup"
     link: ""
