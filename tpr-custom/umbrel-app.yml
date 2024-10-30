@@ -5,7 +5,7 @@ name: Custom App Test
 tagline: Placeholder
 icon: 
 version: "0.0.1"
-port: 8889
+port: 8888
 description: >-
   n/a
 developer: 
@@ -19,3 +19,17 @@ releaseNotes: >-
   n/a
 dependencies: []
 path: ""
+widgets:
+  - id: "lastappbackup"
+    type: "text-with-progress"
+    refresh: "1m"
+    endpoint: "backup-app:8888/widgets/lastappbackup"
+    link: ""
+    example:
+      type: "text-with-buttons"
+      link: ""
+      title: "Last backup on 2024-04-01 10:55"
+      text: "Last App Backup - Succeeded"
+      buttons:
+        - text: "Run Backup"
+        - text: "View Backups"
