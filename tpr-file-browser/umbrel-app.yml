@@ -1,13 +1,14 @@
 manifestVersion: 1
 id: tpr-file-browser
-category: Files & Productivity
+category: Power User
 name: Files
 icon: https://aroundsketch.github.io/Apple-App-Icons/App-Icon/Apple/Files/@SVG.svg
 version: "2.31.4"
 tagline: Browse and manage the files you download on your Umbrel
 description: >-
-  File Browser lets you upload, delete, preview, rename and edit your folders and files.
+  ** Compared to the umbrel appstore this version allows you access to application data and root directories **
 
+  File Browser lets you upload, delete, preview, rename and edit your folders and files.
 
   Easily manage files in the Umbrel's storage folder where your downloads from apps like Transmission, Sonarr, Radarr, and Lidarr are currently held.
 releaseNotes: >-
