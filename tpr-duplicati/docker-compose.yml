@@ -8,6 +8,7 @@ services:
       PROXY_AUTH_ADD: "false"
   
   duplicati:
+    container_name: tpr-duplicati_duplicati_1
     image: duplicati/duplicati:2.0.8.1_beta_2024-05-07@sha256:97b8ef7bcaa095793ef9f39049851f987860a8c832aaf67ef977ff398f9e996e
     entrypoint: ["/usr/bin/duplicati-server", "--webservice-port=8200", "--webservice-interface=any", "--webservice-password=${APP_PASSWORD}", "--webservice-allowed-hostnames=*"] 
     user: "1000:1000"
