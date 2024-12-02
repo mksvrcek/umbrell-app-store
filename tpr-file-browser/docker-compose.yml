@@ -13,7 +13,7 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data/filebrowser.db:/database/filebrowser.db
       - ${UMBREL_ROOT}/data/storage:/data
-      - ${UMBREL_ROOT}/app-data:/data/AppData:rw
+      - ${UMBREL_ROOT}/app-data:/data/appdata:rw
       - /:/data/root
     environment:
       - FB_PORT=80
