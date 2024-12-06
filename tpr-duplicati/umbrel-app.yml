@@ -3,7 +3,7 @@ id: tpr-duplicati
 name: Duplicati
 icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT87KhoTRfHHd3a9IpOl69iCmyxnaPgLCzeMQ&s
 tagline: Store securely encrypted backups in the cloud
-category: Power User
+category: WIP - Requires Tinkering in Docker Compose
 version: "2.0.8.1_beta_2024-05-07"
 port: 38476
 description: >-
