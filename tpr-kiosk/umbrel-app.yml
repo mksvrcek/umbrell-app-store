@@ -4,6 +4,7 @@ category: utilities
 name: HDMI Kiosk
 version: "1.0.0"
 tagline: Show any web page full-screen on the Pi's HDMI display
+icon: https://forum.obsidian.md/uploads/default/original/2X/b/b0c1ac65c3b9c3c94389bbfa5466dae781e06d85.png
 description: >-
   Turns the screen plugged into your Umbrel into a full-screen kiosk.
 releaseNotes: ""
