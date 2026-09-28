@@ -1,25 +1,21 @@
 manifestVersion: 1
 id: tpr-kiosk
-name: Placeholder
-tagline: Placeholder tagline
-icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJEFvgLeuL4UNrmCXJl5q6S535wNth0WF5dQ&s
-category: Productivity
-version: "0.6.2"
+name: HDMI Kiosk
+tagline: Show any web page full-screen on the Pi's HDMI display
+icon: https://raw.githubusercontent.com/mksvrcek/umbrell-app-store/main/tpr-kiosk/icon.svg
+category: Development
+version: "1.0.0"
 port: 5780
 description: >-
-  Placeholder description
-developer: Placeholder
-website: https://www.google.com/
-submitter: Placeholder
-submission: https://www.google.com/
-repo: https://www.google.com/
-support: https://www.google.com/
-gallery:
-  - https://docmost.com/screenshots/home.png
-  - https://docmost.com/screenshots/editor.png
-  - https://docmost.com/screenshots/editor2.png
-releaseNotes: >-
-  Placeholder release notes
+  Turns the screen plugged into your Umbrel into a full-screen kiosk.
+developer: Michael
+website: ""
+submitter: Michael
+submission: ""
+repo: ""
+support: ""
+gallery: []
+releaseNotes: ""
 dependencies: []
 path: ""
 defaultUsername: ""
