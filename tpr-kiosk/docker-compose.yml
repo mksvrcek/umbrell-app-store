@@ -1,0 +1,37 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: michael-hdmi-kiosk_kiosk_1
+      APP_PORT: 8080
+
+  kiosk:
+    image: debian:bookworm-slim
+    restart: on-failure
+    stop_grace_period: 5s
+    privileged: true
+    environment:
+      KIOSK_URL: "http://192.168.1.50:PORT"
+      XDG_RUNTIME_DIR: /tmp/xdg
+      DEBIAN_FRONTEND: noninteractive
+    volumes:
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+      - ${APP_DATA_DIR}/data:/data
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if ! command -v cage >/dev/null; then
+          apt-get update && apt-get install -y --no-install-recommends \
+            cage seatd chromium libgl1-mesa-dri fonts-dejavu-core busybox ca-certificates || exit 1
+        fi
+        mkdir -p "$$XDG_RUNTIME_DIR" /www && chmod 700 "$$XDG_RUNTIME_DIR"
+        echo "<h1>HDMI Kiosk</h1><p>Showing: $$KIOSK_URL</p>" > /www/index.html
+        busybox httpd -p 8080 -h /www
+        while true; do
+          seatd-launch -- cage -s -- chromium --kiosk --no-sandbox --ozone-platform=wayland \
+            --noerrdialogs --disable-infobars --no-first-run --disable-session-crashed-bubble \
+            --user-data-dir=/data/chromium "$$KIOSK_URL"
+          sleep 3
+        done

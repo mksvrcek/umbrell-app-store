@@ -1,0 +1,21 @@
+manifestVersion: 1
+id: michael-hdmi-kiosk
+category: utilities
+name: HDMI Kiosk
+version: "1.0.0"
+tagline: Show any web page full-screen on the Pi's HDMI display
+description: >-
+  Turns the screen plugged into your Umbrel into a full-screen kiosk.
+releaseNotes: ""
+developer: Michael
+website: ""
+dependencies: []
+repo: ""
+support: ""
+port: 5780
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: Michael
+submission: ""
