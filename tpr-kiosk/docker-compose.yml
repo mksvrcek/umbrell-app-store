@@ -1,48 +1,817 @@
 version: "3.7"
 
 services:
-  app_proxy:
-    environment:
-      APP_HOST: tpr-kiosk_kiosk_1
-      APP_PORT: 8080
-
   kiosk:
-    image: debian:bookworm-slim
+    # trixie has newer graphics drivers that support the Pi 5
+    image: debian:trixie-slim
     restart: on-failure
     stop_grace_period: 5s
     privileged: true
+    # Host network: lets the touchscreen be detected when plugged in,
+    # and lets KIOSK_URL use localhost
+    network_mode: host
     environment:
-      KIOSK_URL: "http://192.168.1.50:3123"
+      # The page the screen shows
+      KIOSK_URL: "http://localhost:3123"
+      # Leave empty to pick the HDMI port automatically (vc4hdmi0 or vc4hdmi1)
+      KIOSK_AUDIO_CARD: ""
+      # Screen saver: "on" or "off", folders inside your Umbrel home, and timings in seconds
+      SLIDESHOW: "on"
+      SLIDESHOW_FOLDERS: "Photos,Videos"
+      SLIDESHOW_IDLE_SECONDS: "60"
+      SLIDESHOW_PHOTO_SECONDS: "20"
+      # "on" to play video sound in the screen saver
+      SLIDESHOW_VIDEO_SOUND: "off"
       DEBIAN_FRONTEND: noninteractive
     volumes:
       - /dev:/dev
       - /run/udev:/run/udev:ro
       - ${APP_DATA_DIR}/data:/data
+      # Umbrel's Home/Photos and Home/Videos folders (read-only), for the screen saver
+      - ${UMBREL_ROOT}/home/Photos:/umbrel-home/Photos:ro
+      - ${UMBREL_ROOT}/home/Videos:/umbrel-home/Videos:ro
+      # Keep downloaded packages so later starts don't download again
+      - ${APP_DATA_DIR}/apt-cache:/var/cache/apt/archives
+      - ${APP_DATA_DIR}/apt-lists:/var/lib/apt/lists
+      # Keep installed programs between restarts, so they aren't unpacked every time
+      - kiosk-usr:/usr
+      - kiosk-etc:/etc
+      - kiosk-varlib:/var/lib
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        if ! command -v cage >/dev/null; then
-          apt-get update && apt-get install -y --no-install-recommends \
-            cage seatd chromium libgl1-mesa-dri fonts-dejavu-core busybox ca-certificates || exit 1
+        PKGS="cage seatd xwayland chromium libgl1-mesa-dri fonts-dejavu-core busybox ca-certificates wlr-randr libinput-tools wayvnc novnc websockify fonts-inter wlrctl"
+        if ! command -v wayvnc >/dev/null || ! command -v websockify >/dev/null \
+          || ! fc-list 2>/dev/null | grep -qi "inter" || ! command -v wlrctl >/dev/null; then
+          rm -f /etc/apt/apt.conf.d/docker-clean
+          # Faster unpacking on the Pi's storage
+          echo 'force-unsafe-io' > /etc/dpkg/dpkg.cfg.d/unsafe-io
+          echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+          apt-get install -y --no-install-recommends $$PKGS \
+            || { apt-get update && apt-get install -y --no-install-recommends $$PKGS; } \
+            || exit 1
         fi
 
-        # cage refuses to run as root, so use a normal user
-        id kiosk >/dev/null 2>&1 || useradd -m -G video,input kiosk
-        mkdir -p /tmp/xdg /www /data
+        groupadd -f input; groupadd -f render
+        id kiosk >/dev/null 2>&1 || useradd -m -G video,input,render kiosk
+
+        # Sound: let the kiosk user use the Pi's sound devices
+        if [ -e /dev/snd/controlC0 ]; then
+          SND_GID=$$(stat -c %g /dev/snd/controlC0)
+          getent group "$$SND_GID" >/dev/null || groupadd -g "$$SND_GID" hostaudio
+          usermod -aG "$$(getent group "$$SND_GID" | cut -d: -f1)" kiosk
+        fi
+        # Send sound to whichever HDMI port the screen is plugged into
+        HDMI_CARD=vc4hdmi0
+        for st in /sys/class/drm/card*-HDMI-A-2/status; do
+          [ "$$(cat "$$st" 2>/dev/null)" = connected ] && HDMI_CARD=vc4hdmi1
+        done
+        for st in /sys/class/drm/card*-HDMI-A-1/status; do
+          [ "$$(cat "$$st" 2>/dev/null)" = connected ] && HDMI_CARD=vc4hdmi0
+        done
+        [ -n "$$KIOSK_AUDIO_CARD" ] && HDMI_CARD="$$KIOSK_AUDIO_CARD"
+        cat > /etc/asound.conf <<EOS
+        pcm.!default {
+          type plug
+          slave.pcm "hdmi:CARD=$$HDMI_CARD,DEV=0"
+        }
+        ctl.!default {
+          type hw
+          card $$HDMI_CARD
+        }
+        EOS
+        echo "Sound goes to $$HDMI_CARD"
+        mkdir -p /tmp/xdg /www/cgi-bin /data
         chown kiosk /tmp/xdg && chmod 700 /tmp/xdg
         chown -R kiosk /data
+        rm -f /tmp/blank
+
+        # Helper: turn the HDMI output on or off
+        cat > /usr/local/bin/kiosk-screen <<'EOS'
+        #!/bin/sh
+        export XDG_RUNTIME_DIR=/tmp/xdg WAYLAND_DISPLAY=wayland-0
+        for o in $$(wlr-randr | grep -v '^ ' | cut -d' ' -f1); do
+          wlr-randr --output "$$o" --$$1
+        done
+        EOS
+
+        # Web controls for Home Assistant
+        cat > /www/cgi-bin/reload <<'EOS'
+        #!/bin/sh
+        echo "Content-Type: text/plain"; echo
+        rm -f /tmp/blank
+        busybox pkill chromium
+        echo ok
+        EOS
+
+        cat > /www/cgi-bin/screen <<'EOS'
+        #!/bin/sh
+        echo "Content-Type: text/plain"; echo
+        if [ "$$REQUEST_METHOD" = "POST" ]; then
+          BODY=$$(head -c "$${CONTENT_LENGTH:-0}")
+          case "$$BODY" in
+            *off*) touch /tmp/blank; kiosk-screen off ;;
+            *on*)  rm -f /tmp/blank; kiosk-screen on ;;
+          esac
+        fi
+        if [ -f /tmp/blank ]; then echo off; else echo on; fi
+        EOS
+
+        sed -i 's/^        //' /usr/local/bin/kiosk-screen /www/cgi-bin/reload /www/cgi-bin/screen
+        chmod +x /usr/local/bin/kiosk-screen /www/cgi-bin/reload /www/cgi-bin/screen
+
+        # Browser helper: round X button on other sites, and a TV user agent for YouTube
+        mkdir -p /opt/kiosk-ext
+        printf 'var KIOSK_URL = "%s";\n' "$$KIOSK_URL" > /opt/kiosk-ext/config.js
+
+        cat > /opt/kiosk-ext/manifest.json <<'EOS'
+        {
+          "manifest_version": 3,
+          "name": "Kiosk helper",
+          "version": "1.0",
+          "permissions": ["declarativeNetRequest"],
+          "host_permissions": ["<all_urls>"],
+          "background": { "service_worker": "background.js" },
+          "declarative_net_request": {
+            "rule_resources": [{ "id": "youtube_ua", "enabled": true, "path": "rules.json" }]
+          },
+          "content_scripts": [
+            { "matches": ["<all_urls>"], "js": ["config.js", "overlay.js"], "run_at": "document_idle" },
+            { "matches": ["*://*.youtube.com/*", "*://youtu.be/*"], "js": ["ua.js"],
+              "run_at": "document_start", "world": "MAIN" }
+          ]
+        }
+        EOS
+
+        cat > /opt/kiosk-ext/background.js <<'EOS'
+        importScripts("config.js");
+        chrome.runtime.onMessage.addListener(function (msg, sender) {
+          if (!msg || msg.type !== "kiosk-close" || !sender.tab) return;
+          chrome.tabs.query({}, function (tabs) {
+            if (tabs.length > 1) chrome.tabs.remove(sender.tab.id);
+            else chrome.tabs.update(sender.tab.id, { url: KIOSK_URL });
+          });
+        });
+        EOS
+
+        cat > /opt/kiosk-ext/overlay.js <<'EOS'
+        (function () {
+          if (window.top !== window) return;
+          // No button on the dashboard itself or on the screen saver
+          if (location.hostname === "localhost" && location.port === "5783") return;
+          var home;
+          try { home = new URL(KIOSK_URL); } catch (e) { return; }
+          if (location.origin === home.origin) return;
+          if (document.getElementById("kiosk-close-host")) return;
+
+          var host = document.createElement("div");
+          host.id = "kiosk-close-host";
+          host.style.position = "fixed";
+          host.style.zIndex = "2147483647";
+          var root = host.attachShadow({ mode: "closed" });
+
+          var btn = document.createElement("button");
+          btn.setAttribute("aria-label", "Close and go back to the dashboard");
+          btn.textContent = "\u2715";
+          var s = btn.style;
+          s.position = "fixed"; s.top = "20px"; s.right = "20px";
+          s.width = "72px"; s.height = "72px"; s.padding = "0"; s.margin = "0";
+          s.borderRadius = "50%"; s.border = "3px solid rgba(255,255,255,0.9)";
+          s.background = "rgba(0,0,0,0.6)"; s.color = "#fff";
+          s.fontFamily = "sans-serif"; s.fontSize = "34px"; s.lineHeight = "1";
+          s.display = "flex"; s.alignItems = "center"; s.justifyContent = "center";
+          s.boxShadow = "0 2px 12px rgba(0,0,0,0.45)"; s.cursor = "pointer";
+          s.touchAction = "manipulation"; s.zIndex = "2147483647";
+          btn.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            chrome.runtime.sendMessage({ type: "kiosk-close" });
+          }, true);
+          root.appendChild(btn);
+
+          function place() {
+            var fs = document.fullscreenElement;
+            var parent = (fs && fs.tagName !== "VIDEO") ? fs : document.documentElement;
+            if (host.parentNode !== parent) parent.appendChild(host);
+          }
+          document.addEventListener("fullscreenchange", place);
+          place();
+        })();
+        EOS
+
+        cat > /opt/kiosk-ext/ua.js <<'EOS'
+        (function () {
+          var UA = "Mozilla/5.0 (SMART-TV; Linux; Tizen 9.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/8.0 Chrome/120.0.6099.5 TV Safari/537.36";
+          function fake(name, value) {
+            try { Object.defineProperty(Navigator.prototype, name, { get: function () { return value; }, configurable: true }); } catch (e) {}
+          }
+          fake("userAgent", UA);
+          fake("appVersion", UA.slice(8));
+          fake("userAgentData", undefined);
+        })();
+        EOS
+
+        cat > /opt/kiosk-ext/rules.json <<'EOS'
+        [{
+          "id": 1,
+          "priority": 1,
+          "action": {
+            "type": "modifyHeaders",
+            "requestHeaders": [
+              { "header": "User-Agent", "operation": "set",
+                "value": "Mozilla/5.0 (SMART-TV; Linux; Tizen 9.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/8.0 Chrome/120.0.6099.5 TV Safari/537.36" },
+              { "header": "Sec-CH-UA", "operation": "remove" },
+              { "header": "Sec-CH-UA-Mobile", "operation": "remove" },
+              { "header": "Sec-CH-UA-Platform", "operation": "remove" },
+              { "header": "Sec-CH-UA-Full-Version-List", "operation": "remove" }
+            ]
+          },
+          "condition": {
+            "requestDomains": ["youtube.com", "youtu.be", "googlevideo.com", "youtubei.googleapis.com"],
+            "resourceTypes": ["main_frame", "sub_frame", "xmlhttprequest", "script", "media",
+                              "image", "stylesheet", "font", "websocket", "other"]
+          }
+        }]
+        EOS
+        chmod -R a+rX /opt/kiosk-ext
+
+        # Newer Chromium ignores --load-extension, so install the helper as a managed
+        # extension instead: pack it, serve it locally, and force-install it by policy
+        mkdir -p /www/ext /etc/chromium/policies/managed
+        # Each version of the helper gets its own signing key (and so its own ID).
+        # Chromium installs a new ID straight away at startup, instead of waiting
+        # hours for an update check, and removes the old one by itself.
+        EXT_HASH=$$(cat /opt/kiosk-ext/*.js /opt/kiosk-ext/*.json | sha256sum | cut -c1-16)
+        EXT_KEY=/data/kiosk-ext-$$EXT_HASH.pem
+        if [ ! -s "$$EXT_KEY" ]; then
+          rm -f /data/kiosk-ext*.pem /data/kiosk-ext.hash /data/kiosk-ext.version
+          openssl genrsa -out "$$EXT_KEY" 2048 2>/dev/null
+        fi
+        EXT_ID=$$(openssl rsa -in "$$EXT_KEY" -pubout -outform DER 2>/dev/null \
+          | sha256sum | head -c 32 | tr '0-9a-f' 'a-p')
+        EXT_VER=1.0
+        rm -f /opt/kiosk-ext.crx
+        chromium --no-sandbox --headless --ozone-platform=headless --user-data-dir=/tmp/pack-profile \
+          --pack-extension=/opt/kiosk-ext --pack-extension-key="$$EXT_KEY" >/dev/null 2>&1
+        cp /opt/kiosk-ext.crx /www/ext/kiosk.crx
+        cat > /www/ext/update.xml <<EOS
+        <?xml version='1.0' encoding='UTF-8'?>
+        <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+          <app appid='$$EXT_ID'>
+            <updatecheck codebase='http://localhost:5781/ext/kiosk.crx' version='$$EXT_VER' />
+          </app>
+        </gupdate>
+        EOS
+        echo "{\"ExtensionInstallForcelist\": [\"$$EXT_ID;http://localhost:5781/ext/update.xml\"]}" \
+          > /etc/chromium/policies/managed/kiosk.json
+        if [ -s /www/ext/kiosk.crx ]; then
+          echo "Kiosk helper ready (id $$EXT_ID)"
+        else
+          echo "Kiosk helper could not be packed"
+        fi
+
+        # ---------- Screen saver ----------
+        mkdir -p /etc/kiosk /data/settings /www-local/cgi-bin
+        # Start from the compose setting (Home Assistant can still switch it until the next restart)
+        if [ "$${SLIDESHOW:-on}" = off ]; then echo off; else echo on; fi > /data/settings/slideshow
+        rm -f /data/settings/url
+        cat > /etc/kiosk/slideshow.conf <<EOS
+        FOLDERS="$$SLIDESHOW_FOLDERS"
+        IDLE="$${SLIDESHOW_IDLE_SECONDS:-60}"
+        PHOTO="$${SLIDESHOW_PHOTO_SECONDS:-20}"
+        SOUND="$${SLIDESHOW_VIDEO_SOUND:-off}"
+        EOS
+        ln -sfn /umbrel-home /www-local/media
+
+        cat > /etc/kiosk/httpd-local.conf <<'EOS'
+        .html:text/html
+        .js:text/javascript
+        .json:application/json
+        .jpg:image/jpeg
+        .JPG:image/jpeg
+        .jpeg:image/jpeg
+        .JPEG:image/jpeg
+        .png:image/png
+        .PNG:image/png
+        .webp:image/webp
+        .gif:image/gif
+        .avif:image/avif
+        .bmp:image/bmp
+        .mp4:video/mp4
+        .MP4:video/mp4
+        .m4v:video/mp4
+        .mov:video/quicktime
+        .MOV:video/quicktime
+        .webm:video/webm
+        EOS
+
+        # Settings for the browser helper (only reachable from the Pi itself)
+        cat > /www-local/cgi-bin/settings <<'EOS'
+        #!/bin/sh
+        . /etc/kiosk/slideshow.conf
+        EN=on; [ "$$(cat /data/settings/slideshow 2>/dev/null)" = off ] && EN=off
+        BL=false; [ -f /tmp/blank ] && BL=true
+        echo "Content-Type: application/json"; echo
+        echo "{\"enabled\": \"$$EN\", \"idle\": $$IDLE, \"photo\": $$PHOTO, \"sound\": \"$$SOUND\", \"blank\": $$BL}"
+        EOS
+
+        # List of photos and videos
+        cat > /www-local/cgi-bin/list <<'EOS'
+        #!/usr/bin/python3
+        import json, os, urllib.parse
+        conf = {}
+        for line in open("/etc/kiosk/slideshow.conf"):
+            if "=" in line:
+                k, v = line.strip().split("=", 1)
+                conf[k] = v.strip('"')
+        root = "/umbrel-home"
+        photos = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".bmp"}
+        videos = {".mp4", ".m4v", ".mov", ".webm"}
+        items = []
+        for folder in conf.get("FOLDERS", "Photos,Videos").split(","):
+            base = os.path.join(root, folder.strip().strip("/"))
+            for dirpath, dirnames, filenames in os.walk(base):
+                dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+                for name in filenames:
+                    if name.startswith("."):
+                        continue
+                    ext = os.path.splitext(name)[1].lower()
+                    kind = "photo" if ext in photos else "video" if ext in videos else None
+                    if kind:
+                        rel = os.path.relpath(os.path.join(dirpath, name), root)
+                        items.append({"type": kind, "src": "/media/" + urllib.parse.quote(rel)})
+        print("Content-Type: application/json")
+        print()
+        print(json.dumps(items))
+        EOS
+        chmod +x /www-local/cgi-bin/settings /www-local/cgi-bin/list
+
+        # The screen saver page
+        cat > /www-local/slideshow.html <<'EOS'
+        <!doctype html>
+        <html lang="en">
+        <head>
+        <meta charset="utf-8">
+        <title>Screen saver</title>
+        <style>
+          html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+          .slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+                   opacity: 0; transition: opacity 1s ease; }
+          .slide.show { opacity: 1; }
+          .slide.fit { object-fit: contain; }
+          /* A page of photos arranged to fill the screen */
+          .cell { position: absolute; overflow: hidden; background: #111; }
+          .cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+          /* Date and time, styled like the iPhone lock screen */
+          #clock { position: absolute; top: 0; right: 0; z-index: 5; padding: 4vh 4.5vw 8vh 12vw;
+                   text-align: right; color: #fff; pointer-events: none;
+                   font-family: "Inter Display", "Inter", system-ui, sans-serif;
+                   font-variant-numeric: tabular-nums;
+                   text-shadow: 0 1px 12px rgba(0,0,0,.45);
+                   background: radial-gradient(ellipse at top right, rgba(0,0,0,.35), transparent 70%); }
+          #date { font-size: 2.8vh; font-weight: 600; letter-spacing: .01em; opacity: .92; }
+          #time { font-size: 13vh; font-weight: 700; line-height: 1; letter-spacing: -.03em; margin-top: .4vh; }
+          #msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+                 padding: 40px; color: #9aa4ad; font: 24px/1.4 sans-serif; text-align: center; }
+        </style>
+        </head>
+        <body>
+        <div id="clock" aria-live="off"><div id="date"></div><div id="time"></div></div>
+        <div id="msg"></div>
+        <script>
+        (function () {
+          var queue = [], photoMs = 20000, muted = true, current = null, timer = null, cache = {};
+          var msg = document.getElementById("msg");
+          // Wider screens get more photos per page
+          function maxPerPage() {
+            var ratio = window.innerWidth / window.innerHeight;
+            return Math.max(3, Math.min(7, Math.ceil(ratio * 2.2)));
+          }
+
+          // Clock: "Monday 28 September" over "15:42"
+          var dateEl = document.getElementById("date"), timeEl = document.getElementById("time");
+          var dateFmt = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" });
+          var timeFmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+          function tick() {
+            var d = new Date();
+            dateEl.textContent = dateFmt.format(d).replace(",", "");
+            timeEl.textContent = timeFmt.format(d);
+            setTimeout(tick, 1000 - d.getMilliseconds());
+          }
+          tick();
+
+          function shuffle(a) {
+            for (var k = a.length - 1; k > 0; k--) {
+              var j = Math.floor(Math.random() * (k + 1)); var t = a[k]; a[k] = a[j]; a[j] = t;
+            }
+            return a;
+          }
+
+          function load() {
+            Promise.all([
+              fetch("/cgi-bin/settings", { cache: "no-store" }).then(function (r) { return r.json(); }).catch(function () { return {}; }),
+              fetch("/cgi-bin/list", { cache: "no-store" }).then(function (r) { return r.json(); })
+            ]).then(function (res) {
+              if (res[0].photo) photoMs = res[0].photo * 1000;
+              muted = res[0].sound !== "on";
+              queue = shuffle(res[1]);
+              if (!queue.length) { msg.textContent = "No photos or videos found in your Umbrel folders."; return; }
+              msg.textContent = "";
+              next();
+            }).catch(function () {
+              msg.textContent = "Could not load your photos.";
+              setTimeout(load, 30000);
+            });
+          }
+
+          function show(el) {
+            document.body.appendChild(el);
+            requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add("show"); }); });
+            var old = current; current = el;
+            if (old) {
+              old.classList.remove("show");
+              setTimeout(function () {
+                if (old.tagName === "VIDEO") { old.pause(); old.removeAttribute("src"); old.load(); }
+                old.remove();
+              }, 1100);
+            }
+          }
+
+          function skip() { clearTimeout(timer); timer = setTimeout(next, 500); }
+
+          // ---------- Photo pages ----------
+
+          function preload(item) {
+            if (cache[item.src]) return cache[item.src];
+            cache[item.src] = new Promise(function (resolve) {
+              var img = new Image();
+              var done = false;
+              function finish(ok) {
+                if (done) return; done = true;
+                resolve(ok && img.naturalWidth ? { item: item, img: img, a: img.naturalWidth / img.naturalHeight } : null);
+              }
+              img.onload = function () { finish(true); };
+              img.onerror = function () { finish(false); };
+              setTimeout(function () { finish(false); }, 15000);
+              img.decoding = "async";
+              img.src = item.src;
+            });
+            return cache[item.src];
+          }
+
+          // Layout pieces: a photo, or a column of photos stacked on top of each other.
+          // A page is a row of pieces. Widths are worked out for a given height.
+          function pieceWidth(p, h, gap) {
+            if (!p.col) return h * p.a;
+            var inv = 0;
+            p.col.forEach(function (x) { inv += 1 / x.a; });
+            return (h - gap * (p.col.length - 1)) / inv;
+          }
+          function rowWidth(row, h, gap) {
+            var w = gap * (row.length - 1);
+            row.forEach(function (p) { w += pieceWidth(p, h, gap); });
+            return w;
+          }
+
+          // Split an ordered list of photos into pieces: single photos, or two stacked in a column
+          function groupings(p) {
+            if (!p.length) return [[]];
+            var out = [];
+            groupings(p.slice(1)).forEach(function (g) { out.push([p[0]].concat(g)); });
+            if (p.length >= 2) {
+              groupings(p.slice(2)).forEach(function (g) { out.push([{ col: [p[0], p[1]] }].concat(g)); });
+            }
+            return out;
+          }
+          function subsets(rest, size) {
+            if (size === 0) return [[]];
+            if (rest.length < size) return [];
+            var out = [];
+            rest.forEach(function (x, k) {
+              subsets(rest.slice(k + 1), size - 1).forEach(function (s) { out.push([x].concat(s)); });
+            });
+            return out;
+          }
+          // A few useful orders to try (all permutations would be too slow for wide screens)
+          function orders(p) {
+            var byA = p.slice().sort(function (x, y) { return x.a - y.a; });
+            var zig = [];
+            var lo = 0, hi = byA.length - 1;
+            while (lo <= hi) { zig.push(byA[lo++]); if (lo <= hi) zig.push(byA[hi--]); }
+            var land = p.filter(function (x) { return x.a >= 1; }), port = p.filter(function (x) { return x.a < 1; });
+            var mixed = [];
+            while (land.length || port.length) {
+              if (port.length) mixed.push(port.shift());
+              if (land.length) mixed.push(land.shift());
+              if (land.length) mixed.push(land.shift());
+            }
+            return [p, byA, byA.slice().reverse(), zig, mixed];
+          }
+
+          // Pick the combination that fills the screen best (always includes the first photo)
+          function bestLayout(photos, W, H, gap, maxPer) {
+            var best = null;
+            var first = photos[0], rest = photos.slice(1);
+            for (var size = 1; size <= Math.min(maxPer, photos.length); size++) {
+              subsets(rest, size - 1).forEach(function (s) {
+                orders([first].concat(s)).forEach(function (order) {
+                  groupings(order).forEach(function (row) {
+                    if (row.length === 1 && row[0].col) return;   // a lone column is never wanted
+                    var natural = rowWidth(row, H, gap);
+                    var score = Math.abs(Math.log(natural / W)) - 0.03 * (size - 1);   // small nudge towards collages
+                    if (!best || score < best.score) best = { row: row, score: score, used: order };
+                  });
+                });
+              });
+            }
+            return best;
+          }
+
+          function buildPage(layout, W, H, gap, margin) {
+            var page = document.createElement("div");
+            page.className = "slide";
+            var row = layout.row;
+            var gapsW = gap * (row.length - 1);
+            var natural = 0;
+            row.forEach(function (p) { natural += pieceWidth(p, H, gap); });
+            var scale = (W - gapsW) / natural;      // stretch or squeeze slightly so the row fills the width
+            var radius = Math.round(gap * 0.9);
+            var x = margin;
+            row.forEach(function (p) {
+              var w = pieceWidth(p, H, gap) * scale;
+              var parts = p.col ? p.col : [p];
+              var inv = 0;
+              parts.forEach(function (q) { inv += 1 / q.a; });
+              var y = margin;
+              parts.forEach(function (q) {
+                var h = parts.length === 1 ? H : (1 / q.a) / inv * (H - gap * (parts.length - 1));
+                var cell = document.createElement("div");
+                cell.className = "cell";
+                cell.style.left = Math.round(x) + "px";
+                cell.style.top = Math.round(y) + "px";
+                cell.style.width = Math.round(w) + "px";
+                cell.style.height = Math.round(h) + "px";
+                cell.style.borderRadius = radius + "px";
+                cell.appendChild(q.img);
+                page.appendChild(cell);
+                y += h + gap;
+              });
+              x += w + gap;
+            });
+            return page;
+          }
+
+          function photoPage() {
+            // Upcoming photos, up to the next video
+            var win = [];
+            var maxPer = maxPerPage();
+            for (var k = 0; k < queue.length && win.length < maxPer + 3; k++) {
+              if (queue[k].type !== "photo") break;
+              win.push(queue[k]);
+            }
+            Promise.all(win.map(preload)).then(function (loaded) {
+              // Drop photos that failed to load
+              win.forEach(function (item, k) {
+                if (!loaded[k]) { queue.splice(queue.indexOf(item), 1); delete cache[item.src]; }
+              });
+              var photos = loaded.filter(Boolean);
+              if (!photos.length) { skip(); return; }
+
+              var W0 = window.innerWidth, H0 = window.innerHeight;
+              var gap = Math.max(6, Math.round(Math.min(W0, H0) * 0.014));
+              var W = W0 - gap * 2, H = H0 - gap * 2;
+              var layout = bestLayout(photos, W, H, gap, maxPer);
+
+              layout.used.forEach(function (p) {
+                queue.splice(queue.indexOf(p.item), 1);
+                delete cache[p.item.src];
+              });
+              show(buildPage(layout, W, H, gap, gap));
+              timer = setTimeout(next, photoMs);
+            });
+          }
+
+          // ---------- Videos ----------
+
+          function videoPage(it) {
+            var el = document.createElement("video");
+            el.className = "slide"; el.muted = muted; el.playsInline = true; el.src = it.src;
+            el.addEventListener("ended", next);
+            el.addEventListener("error", skip);
+            el.addEventListener("loadeddata", function () {
+              var va = el.videoWidth / el.videoHeight, sa = window.innerWidth / window.innerHeight;
+              if (Math.abs(Math.log(va / sa)) > 0.25) el.classList.add("fit");   // very different shape: show it whole
+              show(el);
+              el.play().catch(function () { el.muted = true; el.play().catch(skip); });
+              var secs = isFinite(el.duration) ? el.duration : 600;
+              timer = setTimeout(next, secs * 1000 + 10000);   // safety net if a video gets stuck
+            }, { once: true });
+          }
+
+          function next() {
+            clearTimeout(timer);
+            if (!queue.length) { load(); return; }   // reshuffle and pick up new files
+            if (queue[0].type === "video") { videoPage(queue.shift()); return; }
+            photoPage();
+          }
+
+          load();
+        })();
+        </script>
+        </body>
+        </html>
+        EOS
+        busybox httpd -p 127.0.0.1:5783 -h /www-local -c /etc/kiosk/httpd-local.conf
+
+        # Screen saver on/off for Home Assistant
+        cat > /www/cgi-bin/slideshow <<'EOS'
+        #!/bin/sh
+        echo "Content-Type: text/plain"; echo
+        if [ "$$REQUEST_METHOD" = "POST" ]; then
+          BODY=$$(head -c "$${CONTENT_LENGTH:-0}")
+          case "$$BODY" in
+            *off*) echo off > /data/settings/slideshow ;;
+            *on*)  echo on > /data/settings/slideshow ;;
+          esac
+        fi
+        if [ "$$(cat /data/settings/slideshow 2>/dev/null)" = off ]; then echo off; else echo on; fi
+        EOS
+        chmod +x /www/cgi-bin/slideshow
 
         echo "<h1>HDMI Kiosk</h1><p>Showing: $$KIOSK_URL</p>" > /www/index.html
-        busybox httpd -p 8080 -h /www
+        busybox httpd -p 5781 -h /www
 
-        # seatd runs as root and hands the screen to the kiosk user
         seatd -g kiosk &
         sleep 2
 
+        # Live view of the screen in the Umbrel app (touch and keyboard work too)
+        mkdir -p /opt/novnc && cp -r /usr/share/novnc/. /opt/novnc/
+        echo '<meta http-equiv="refresh" content="0; url=vnc.html?autoconnect=true&resize=scale&reconnect=true">' \
+          > /opt/novnc/index.html
+        (
+          while true; do
+            if [ -S /tmp/xdg/wayland-0 ]; then
+              su kiosk -s /bin/sh -c "XDG_RUNTIME_DIR=/tmp/xdg WAYLAND_DISPLAY=wayland-0 wayvnc 127.0.0.1 5900"
+            fi
+            sleep 2
+          done
+        ) &
+        # Opening the app in Umbrel shows this live view (port 5782)
+        websockify --web /opt/novnc 5782 127.0.0.1:5900 &
+
+        # Watch taps, clicks and key presses: wake the screen, and note the time for the screen saver
+        touch /tmp/last-input
+        (
+          stdbuf -oL libinput debug-events 2>/dev/null | while read -r line; do
+            case "$$line" in
+              *TOUCH_DOWN*|*POINTER_BUTTON*|*POINTER_MOTION*|*POINTER_SCROLL*|*POINTER_AXIS*|*KEYBOARD_KEY*)
+                touch /tmp/last-input
+                if [ -f /tmp/blank ]; then rm -f /tmp/blank; kiosk-screen on; fi ;;
+            esac
+          done
+        ) &
+
+        # Screen saver: switches tabs through the browser's local control port
+        cat > /usr/local/bin/kiosk-saver <<'EOS'
+        #!/usr/bin/python3
+        import glob, json, os, time, urllib.parse, urllib.request
+
+        KIOSK_URL = os.environ.get("KIOSK_URL", "")
+        SAVER = "http://localhost:5783/slideshow.html"
+        CDP = "http://127.0.0.1:9222"
+
+        def conf():
+            c = {}
+            try:
+                for line in open("/etc/kiosk/slideshow.conf"):
+                    if "=" in line:
+                        k, v = line.strip().split("=", 1)
+                        c[k] = v.strip('"')
+            except OSError:
+                pass
+            return c
+
+        def enabled():
+            try:
+                return open("/data/settings/slideshow").read().strip() != "off"
+            except OSError:
+                return True
+
+        def last_input():
+            try:
+                return os.path.getmtime("/tmp/last-input")
+            except OSError:
+                return time.time()
+
+        def sound_playing():
+            for f in glob.glob("/proc/asound/card*/pcm*p/sub*/status"):
+                try:
+                    if "RUNNING" in open(f).read():
+                        return True
+                except OSError:
+                    pass
+            return False
+
+        def cdp(path, method="GET"):
+            req = urllib.request.Request(CDP + path, method=method)
+            with urllib.request.urlopen(req, timeout=3) as r:
+                body = r.read()
+            return json.loads(body) if body.strip().startswith((b"{", b"[")) else None
+
+        def pages():
+            return [t for t in (cdp("/json/list") or []) if t.get("type") == "page"]
+
+        def open_tab(url):
+            tab = cdp("/json/new?" + urllib.parse.quote(url, safe=":/?&=%#"), "PUT")
+            if tab and tab.get("id"):
+                cdp("/json/activate/" + tab["id"])
+            return tab
+
+        def same_site(url, base):
+            a, b = urllib.parse.urlsplit(url), urllib.parse.urlsplit(base)
+            return (a.scheme, a.netloc) == (b.scheme, b.netloc)
+
+        saver_opened = 0
+        busy_until = 0
+        start_with_saver = True   # show the screen saver as soon as the app starts
+        showing = False
+        while True:
+            time.sleep(0.2 if showing else 1)
+            try:
+                c = conf()
+                idle = float(c.get("IDLE", "60") or 60)
+                tabs = pages()
+                savers = [t for t in tabs if t.get("url", "").startswith(SAVER)]
+                showing = bool(savers)
+
+                if savers:
+                    # Any tap, click or key: straight back to the dashboard (kept loaded in the
+                    # background), and close every other tab
+                    if last_input() > saver_opened or not enabled() or os.path.exists("/tmp/blank"):
+                        home = next((t for t in tabs if same_site(t.get("url", ""), KIOSK_URL)), None)
+                        if home:
+                            cdp("/json/activate/" + home["id"])
+                        else:
+                            home = open_tab(KIOSK_URL)
+                        for t in tabs:
+                            if not home or t["id"] != home.get("id"):
+                                cdp("/json/close/" + t["id"])
+                        busy_until = time.time()
+                    continue
+
+                if not enabled() or os.path.exists("/tmp/blank"):
+                    continue
+                # Only over the dashboard: not while YouTube or another site is open
+                if not tabs or not all(same_site(t.get("url", ""), KIOSK_URL) for t in tabs):
+                    busy_until = time.time()
+                    continue
+                if start_with_saver:
+                    start_with_saver = False
+                    open_tab(SAVER)
+                    saver_opened = time.time()
+                    continue
+                # Music or a video with sound counts as activity
+                if sound_playing():
+                    busy_until = time.time()
+                    continue
+                quiet_since = max(last_input(), busy_until)
+                if time.time() - quiet_since >= idle:
+                    open_tab(SAVER)
+                    saver_opened = time.time()
+            except Exception:
+                # The browser may be restarting; try again shortly
+                time.sleep(2)
+        EOS
+        chmod +x /usr/local/bin/kiosk-saver
+        KIOSK_URL="$$KIOSK_URL" /usr/local/bin/kiosk-saver &
+
         while true; do
-          su kiosk -s /bin/sh -c "XDG_RUNTIME_DIR=/tmp/xdg LIBSEAT_BACKEND=seatd \
-            cage -s -- chromium --kiosk --no-sandbox --ozone-platform=wayland \
-            --noerrdialogs --disable-infobars --no-first-run --disable-session-crashed-bubble \
+          # Clear the "profile in use" lock and the "restore pages" prompt
+          rm -f /data/chromium/Singleton*
+          sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"Crashed"/"exit_type":"Normal"/' \
+            /data/chromium/Default/Preferences 2>/dev/null
+
+          # Once the screen is up, park the mouse pointer in the bottom-right corner
+          # (it stays usable from the live view)
+          (
+            for n in 1 2 3 4 5 6 7 8 9 10; do
+              sleep 2
+              [ -S /tmp/xdg/wayland-0 ] && break
+            done
+            sleep 2
+            XDG_RUNTIME_DIR=/tmp/xdg WAYLAND_DISPLAY=wayland-0 wlrctl pointer move 20000 20000 >/dev/null 2>&1
+          ) &
+          su kiosk -s /bin/sh -c "XDG_RUNTIME_DIR=/tmp/xdg LIBSEAT_BACKEND=seatd WLR_RENDERER_ALLOW_SOFTWARE=1 \
+            cage -s -- chromium --kiosk --no-sandbox --ozone-platform=wayland --touch-events=enabled --autoplay-policy=no-user-gesture-required \
+            --noerrdialogs --disable-infobars --no-first-run \
+            --disable-renderer-backgrounding --disable-background-timer-throttling --disable-backgrounding-occluded-windows \
+            --disable-session-crashed-bubble --hide-crash-restore-bubble \
+            --remote-debugging-port=9222 \
             --user-data-dir=/data/chromium '$$KIOSK_URL'"
+          rm -f /tmp/blank
           sleep 3
         done
+
+volumes:
+  kiosk-usr:
+  kiosk-etc:
+  kiosk-varlib:
