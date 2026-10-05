@@ -4,10 +4,15 @@ name: HDMI Kiosk
 tagline: Show any web page full-screen on the Pi's HDMI display
 icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKxd9Kwk7SC7i0czOdyZSKVuWYef3CDDV6d7W53NZK4w&s
 category: Development
-version: "1.0.0"
+version: "1.1.0"
 port: 5782
 description: >-
-  Turns the screen plugged into your Umbrel into a full-screen kiosk.
+  Turns the screen plugged into your Umbrel into a full-screen kiosk, with a
+  photo and video screensaver from your Photos and Videos folders.
+  Opening the app shows its settings, where you choose the pages to show,
+  the screensaver's folders and timings, and the time zone, and save it all as
+  profiles. On the screen itself, swipe down from the top-right corner for the
+  settings and up from the bottom edge for a dock of your apps.
 developer: Michael
 website: ""
 submitter: Michael
@@ -15,7 +20,18 @@ submission: ""
 repo: ""
 support: ""
 gallery: []
-releaseNotes: ""
+releaseNotes: >-
+  New settings page (opens from the Umbrel home screen, and on the kiosk by
+  swiping down from the top-right corner) with profiles, several apps in a
+  swipe-up dock, screensaver folders and timings, and a time zone setting.
+  The screensaver now loads the next slide in the background so it fades
+  straight in, and the remote view counts as activity: it closes the
+  screensaver and keeps it away while you use it. Home Assistant can switch
+  profiles and control the screen and screensaver over HTTP, with an optional
+  Home Assistant integration (see the home-assistant folder). An optional
+  6-digit PIN can lock the settings (on the kiosk, in the Umbrel app, or both)
+  and individual apps. The screensaver can also play a list of video links,
+  with separate day and night lists that follow sunrise and sunset.
 dependencies: []
 path: ""
 defaultUsername: ""
